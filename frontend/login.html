@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Login / Registro — Galeria</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen flex items-center justify-center">
+  <div class="bg-slate-800 p-6 rounded shadow-md w-full max-w-sm">
+    <h1 class="text-2xl font-bold mb-4 text-center">Login / Registro</h1>
+
+    <h2 class="font-semibold mb-1">Registrar</h2>
+    <input id="reg-username" placeholder="Usuário" class="p-2 rounded text-black w-full mb-2"/>
+    <input id="reg-password" placeholder="Senha" type="password" class="p-2 rounded text-black w-full mb-2"/>
+    <button id="btn-register" class="bg-green-500 hover:bg-green-600 p-2 rounded w-full mb-4">Registrar</button>
+
+    <h2 class="font-semibold mb-1">Login</h2>
+    <input id="login-username" placeholder="Usuário" class="p-2 rounded text-black w-full mb-2"/>
+    <input id="login-password" placeholder="Senha" type="password" class="p-2 rounded text-black w-full mb-2"/>
+    <button id="btn-login" class="bg-blue-500 hover:bg-blue-600 p-2 rounded w-full">Login</button>
+  </div>
+
+  <script src="login.js"></script>
+</body>
+</html>
