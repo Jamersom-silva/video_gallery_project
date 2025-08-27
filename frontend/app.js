@@ -5,14 +5,14 @@ const username = localStorage.getItem('username');
 if(!token) window.location.href = 'login.html';
 document.getElementById('me').textContent = username;
 
-// Logout
+
 document.getElementById('btn-logout').onclick = () => {
   localStorage.removeItem('token');
   localStorage.removeItem('username');
   window.location.href = 'login.html';
 }
 
-// Upload
+
 const uploadForm = document.getElementById('uploadForm');
 const fileInput = document.getElementById('fileInput');
 const titleInput = document.getElementById('title');
@@ -56,7 +56,7 @@ uploadForm.addEventListener('submit', async e => {
   }
 });
 
-// Modal
+
 closeModal.addEventListener('click', () => {
   modal.classList.add('hidden');
   modalVideo.pause();
@@ -64,7 +64,7 @@ closeModal.addEventListener('click', () => {
   modalImage.src='';
 });
 
-// Render gallery
+
 async function renderGallery(){
   try {
     const res = await fetch(`${API}/media/list`, {
@@ -120,5 +120,5 @@ function openModal(item, url){
   }
 }
 
-// Inicializa
+
 renderGallery();

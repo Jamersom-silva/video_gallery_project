@@ -6,11 +6,11 @@ const fs = require('fs');
 const { db } = require('../middlewares/db');
 const authenticate = require('../middlewares/auth'); // seu middleware JWT
 
-// Configuração do multer
+
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, path.join(__dirname, '../../uploads')),
   filename: (req, file, cb) => {
-    // Remove caracteres especiais e espaços
+   
     const cleanName = file.originalname.normalize("NFD").replace(/[\u0300-\u036f]/g, "")
       .replace(/\s+/g, "_");
     cb(null, Date.now() + '_' + cleanName);
@@ -18,7 +18,7 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage });
 
-// Upload
+
 router.post('/upload', authenticate, upload.single('file'), async (req, res) => {
   try {
     const { title, description } = req.body;
@@ -42,7 +42,7 @@ router.post('/upload', authenticate, upload.single('file'), async (req, res) => 
   }
 });
 
-// Listar mídias do usuário
+
 router.get('/list', authenticate, async (req, res) => {
   try {
     const items = await new Promise((resolve, reject) => {
@@ -50,7 +50,7 @@ router.get('/list', authenticate, async (req, res) => {
         (err, rows) => err ? reject(err) : resolve(rows));
     });
 
-    // Gerar URLs acessíveis
+    
     const mapped = items.map(i => ({
       id: i.id,
       title: i.originalname,
@@ -66,7 +66,7 @@ router.get('/list', authenticate, async (req, res) => {
   }
 });
 
-// Download
+
 router.get('/download/:id', authenticate, async (req, res) => {
   try {
     const mediaId = req.params.id;

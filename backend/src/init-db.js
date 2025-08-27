@@ -4,15 +4,15 @@ const path = require('path');
 
 async function init() {
   try {
-    // Cria pasta uploads se não existir
+    
     const uploadDir = path.join(__dirname, '../../uploads');
     if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
 
-    // Apaga tabelas se existirem
+    
     await db.run('DROP TABLE IF EXISTS users');
     await db.run('DROP TABLE IF EXISTS media');
 
-    // Cria tabela de usuários
+    
     await db.run(`CREATE TABLE users (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       username TEXT UNIQUE,

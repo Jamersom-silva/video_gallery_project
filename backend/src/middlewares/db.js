@@ -1,7 +1,7 @@
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 
-// Caminho correto para o banco
+
 const dbPath = path.join(__dirname, '../../data/gallery.db'); 
 
 const db = new sqlite3.Database(dbPath, (err) => {
@@ -12,7 +12,7 @@ const db = new sqlite3.Database(dbPath, (err) => {
   }
 });
 
-// Promisify run, get e all
+
 const run = (sql, params = []) => new Promise((resolve, reject) => {
   db.run(sql, params, function(err) {
     if(err) reject(err); else resolve(this);
@@ -31,7 +31,7 @@ const all = (sql, params = []) => new Promise((resolve, reject) => {
   });
 });
 
-// Cria tabelas se não existirem
+
 db.run(`CREATE TABLE IF NOT EXISTS users (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   username TEXT UNIQUE,
