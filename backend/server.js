@@ -1,4 +1,3 @@
-
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
@@ -10,11 +9,11 @@ const fs = require('fs');
 
 const app = express();
 const PORT = process.env.PORT || 4000;
-const BASE_URL = process.env.BASE_URL || `http://localhost:${PORT}`;
+const BASE_URL = process.env.BASE_URL || 'https://video-gallery-project-1.onrender.com';
 const JWT_SECRET = process.env.JWT_SECRET || 'segredo123';
 
-// --- BANCO DE DADOS ---
-const dbPath = path.join('/opt/render/project', 'gallery.db'); // diretório persistente no Render
+
+const dbPath = path.join('/opt/render/project', 'gallery.db'); 
 const dbDir = path.dirname(dbPath);
 if (!fs.existsSync(dbDir)) fs.mkdirSync(dbDir, { recursive: true });
 
@@ -22,7 +21,6 @@ const db = new sqlite3.Database(dbPath, err => {
   if (err) console.error('Erro ao conectar ao banco:', err);
   else console.log('Banco conectado com sucesso!');
 });
-
 
 db.run(`CREATE TABLE IF NOT EXISTS users (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -39,15 +37,13 @@ db.run(`CREATE TABLE IF NOT EXISTS media (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 )`);
 
-
 app.use(cors());
 app.use(express.json());
 
 
-const uploadsDir = path.join(process.cwd(), 'uploads');
+const uploadsDir = path.join('/opt/render/project', 'uploads'); 
 if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
 app.use('/uploads', express.static(uploadsDir));
-
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, uploadsDir),
@@ -61,7 +57,6 @@ const storage = multer.diskStorage({
 const upload = multer({ storage });
 
 // --- ROTAS ---
-
 
 app.post('/auth/register', async (req, res) => {
   const { username, password } = req.body;
