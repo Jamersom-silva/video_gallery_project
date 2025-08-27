@@ -9,11 +9,13 @@ const fs = require('fs');
 
 const app = express();
 const PORT = process.env.PORT || 4000;
-const BASE_URL = process.env.BASE_URL || 'https://video-gallery-project-1.onrender.com';
+
+// 👉 Se tiver BASE_URL no Render, usa ele.
+// 👉 Se não tiver, usa o localhost automaticamente.
+const BASE_URL = process.env.BASE_URL || `http://localhost:${PORT}`;
 const JWT_SECRET = process.env.JWT_SECRET || 'segredo123';
 
-
-const dbPath = path.join('/opt/render/project', 'gallery.db'); 
+const dbPath = path.join('/opt/render/project', 'gallery.db');
 const dbDir = path.dirname(dbPath);
 if (!fs.existsSync(dbDir)) fs.mkdirSync(dbDir, { recursive: true });
 
@@ -40,8 +42,8 @@ db.run(`CREATE TABLE IF NOT EXISTS media (
 app.use(cors());
 app.use(express.json());
 
-
-const uploadsDir = path.join('/opt/render/project', 'uploads'); 
+// --- Uploads ---
+const uploadsDir = path.join('/opt/render/project', 'uploads');
 if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
 app.use('/uploads', express.static(uploadsDir));
 
@@ -69,7 +71,6 @@ app.post('/auth/register', async (req, res) => {
   });
 });
 
-
 app.post('/auth/login', (req, res) => {
   const { username, password } = req.body;
   db.get(`SELECT * FROM users WHERE username = ?`, [username], async (err, user) => {
@@ -81,7 +82,6 @@ app.post('/auth/login', (req, res) => {
   });
 });
 
-
 function authMiddleware(req, res, next){
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1];
@@ -92,7 +92,6 @@ function authMiddleware(req, res, next){
     next();
   });
 }
-
 
 app.post('/media/upload', authMiddleware, upload.single('file'), (req, res) => {
   const file = req.file;
@@ -109,7 +108,6 @@ app.post('/media/upload', authMiddleware, upload.single('file'), (req, res) => {
   );
 });
 
-
 app.get('/media/list', authMiddleware, (req, res) => {
   db.all(`SELECT * FROM media WHERE user_id = ? ORDER BY created_at DESC`, [req.user.id], (err, rows) => {
     if(err) return res.status(500).json({ message: 'Erro ao listar mídias' });
@@ -124,7 +122,6 @@ app.get('/media/list', authMiddleware, (req, res) => {
   });
 });
 
-
 app.get('/media/download/:id', authMiddleware, (req, res) => {
   const { id } = req.params;
   db.get(`SELECT * FROM media WHERE id = ? AND user_id = ?`, [id, req.user.id], (err, row) => {
@@ -133,6 +130,5 @@ app.get('/media/download/:id', authMiddleware, (req, res) => {
     res.download(filePath, row.originalname);
   });
 });
-
 
 app.listen(PORT, () => console.log(`Servidor rodando na porta ${PORT}`));
