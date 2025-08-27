@@ -3,55 +3,102 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Login - Galeria de Mídia</title>
+  <title>Login / Registro - Galeria de Mídia</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-slate-900 text-slate-100 flex items-center justify-center min-h-screen p-6">
   <div class="bg-slate-800 p-6 rounded-lg shadow-md w-full max-w-sm">
-    <h1 class="text-2xl font-bold mb-4 text-center">Login</h1>
+    <h1 class="text-2xl font-bold mb-4 text-center">Login / Registro</h1>
+
+    <!-- Formulário de Login -->
     <form id="loginForm" class="space-y-4">
       <div>
         <label class="block text-sm text-slate-300">Usuário</label>
-        <input id="username" type="text" class="mt-1 w-full rounded p-2 bg-slate-700 border border-slate-600" required>
+        <input id="loginUsername" type="text" class="mt-1 w-full rounded p-2 bg-slate-700 border border-slate-600" required>
       </div>
       <div>
         <label class="block text-sm text-slate-300">Senha</label>
-        <input id="password" type="password" class="mt-1 w-full rounded p-2 bg-slate-700 border border-slate-600" required>
+        <input id="loginPassword" type="password" class="mt-1 w-full rounded p-2 bg-slate-700 border border-slate-600" required>
       </div>
-      <p id="msg" class="text-red-500 text-sm"></p>
+      <p id="loginMsg" class="text-red-500 text-sm"></p>
       <button type="submit" class="w-full bg-emerald-500 text-black px-4 py-2 rounded font-semibold">Entrar</button>
+    </form>
+
+    <hr class="my-4 border-slate-600">
+
+    <!-- Formulário de Registro -->
+    <form id="registerForm" class="space-y-4">
+      <div>
+        <label class="block text-sm text-slate-300">Novo Usuário</label>
+        <input id="regUsername" type="text" class="mt-1 w-full rounded p-2 bg-slate-700 border border-slate-600" required>
+      </div>
+      <div>
+        <label class="block text-sm text-slate-300">Nova Senha</label>
+        <input id="regPassword" type="password" class="mt-1 w-full rounded p-2 bg-slate-700 border border-slate-600" required>
+      </div>
+      <p id="regMsg" class="text-red-500 text-sm"></p>
+      <button type="submit" class="w-full bg-blue-500 text-black px-4 py-2 rounded font-semibold">Registrar</button>
     </form>
   </div>
 
 <script>
-const API = 'https://video-gallery-project-1.onrender.com'; 
+const API = 'https://video-gallery-project-1.onrender.com'; // Backend no Render
+
+// --- LOGIN ---
 const loginForm = document.getElementById('loginForm');
-const msg = document.getElementById('msg');
+const loginMsg = document.getElementById('loginMsg');
 
 loginForm.addEventListener('submit', async e => {
   e.preventDefault();
-
-  const username = document.getElementById('username').value.trim();
-  const password = document.getElementById('password').value.trim();
+  const username = document.getElementById('loginUsername').value.trim();
+  const password = document.getElementById('loginPassword').value.trim();
 
   try {
     const res = await fetch(`${API}/auth/login`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {'Content-Type':'application/json'},
       body: JSON.stringify({ username, password })
     });
-
     const data = await res.json();
     if (!data.success) {
-      msg.textContent = data.message;
+      loginMsg.textContent = data.message;
       return;
     }
 
     localStorage.setItem('token', data.token);
     localStorage.setItem('username', data.username);
     window.location.href = 'index.html';
-  } catch (err) {
-    msg.textContent = 'Erro ao conectar ao servidor';
+  } catch(err) {
+    loginMsg.textContent = 'Erro ao conectar ao servidor';
+    console.error(err);
+  }
+});
+
+// --- REGISTRO ---
+const registerForm = document.getElementById('registerForm');
+const regMsg = document.getElementById('regMsg');
+
+registerForm.addEventListener('submit', async e => {
+  e.preventDefault();
+  const username = document.getElementById('regUsername').value.trim();
+  const password = document.getElementById('regPassword').value.trim();
+
+  try {
+    const res = await fetch(`${API}/auth/register`, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ username, password })
+    });
+    const data = await res.json();
+    if (!data.success) {
+      regMsg.textContent = data.message || 'Erro no registro';
+      return;
+    }
+
+    regMsg.textContent = 'Usuário registrado com sucesso! Faça login.';
+    registerForm.reset();
+  } catch(err) {
+    regMsg.textContent = 'Erro ao conectar ao servidor';
     console.error(err);
   }
 });

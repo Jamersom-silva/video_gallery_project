@@ -9,6 +9,7 @@
 <body class="bg-slate-900 text-slate-100 min-h-screen p-6">
   <div class="max-w-5xl mx-auto">
 
+    <!-- Cabeçalho -->
     <div class="flex justify-between items-center mb-6">
       <h1 class="text-3xl font-bold">Galeria de Mídia</h1>
       <div>
@@ -17,6 +18,7 @@
       </div>
     </div>
 
+    <!-- Formulário de Upload -->
     <section class="bg-slate-800 p-4 rounded-lg mb-6">
       <form id="uploadForm" class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
         <div class="md:col-span-2">
@@ -31,6 +33,7 @@
       </form>
     </section>
 
+    <!-- Galeria -->
     <section>
       <div class="flex items-center justify-between mb-4">
         <h2 class="text-xl font-semibold">Minha galeria</h2>
@@ -41,6 +44,7 @@
     </section>
   </div>
 
+  <!-- Modal -->
   <div id="modal" class="fixed inset-0 bg-black/70 hidden items-center justify-center p-6">
     <div class="bg-slate-900 rounded-lg max-w-3xl w-full p-4">
       <div class="flex justify-between items-start">
@@ -59,6 +63,7 @@
     </div>
   </div>
 
+  <!-- Template da Galeria -->
   <template id="cardTpl">
     <div class="bg-slate-800 rounded overflow-hidden shadow hover:shadow-lg transition cursor-pointer">
       <div class="relative h-48 bg-black flex items-center justify-center overflow-hidden">
@@ -73,7 +78,7 @@
   </template>
 
 <script>
-const API = 'https://video-gallery-project-1.onrender.com'; // URL do backend no Render
+const API = 'https://video-gallery-project-1.onrender.com'; // URL do backend Render
 const token = localStorage.getItem('token');
 const username = localStorage.getItem('username');
 
@@ -138,7 +143,6 @@ async function renderGallery(){
   try {
     const res = await fetch(`${API}/media/list`, { headers: {'Authorization': `Bearer ${token}`} });
     const items = await res.json();
-
     gallery.innerHTML='';
     countSpan.textContent = items.length;
     emptyMsg.style.display = items.length ? 'none' : 'block';
