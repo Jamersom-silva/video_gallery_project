@@ -4,8 +4,9 @@ const jwt = require('jsonwebtoken');
 const { run, get } = require('../middlewares/db');
 
 const router = express.Router();
-const SECRET = 'segredo-supersecreto'; // troque para variavel de ambiente
 
+// Usando variável de ambiente para o segredo
+const SECRET = process.env.JWT_SECRET || 'segredo-supersecreto';
 
 router.post('/register', async (req, res) => {
   const { username, password } = req.body;
@@ -20,7 +21,6 @@ router.post('/register', async (req, res) => {
     res.status(400).json({ success: false, message: 'Usuário já existe' });
   }
 });
-
 
 router.post('/login', async (req, res) => {
   const { username, password } = req.body;

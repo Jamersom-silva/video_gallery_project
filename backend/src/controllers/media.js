@@ -4,20 +4,19 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 const { db } = require('../middlewares/db');
-const authenticate = require('../middlewares/auth'); // seu middleware JWT
+const authenticate = require('../middlewares/auth');
 
+const BASE_URL = process.env.BASE_URL || 'http://localhost:4000'; 
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, path.join(__dirname, '../../uploads')),
   filename: (req, file, cb) => {
-   
     const cleanName = file.originalname.normalize("NFD").replace(/[\u0300-\u036f]/g, "")
       .replace(/\s+/g, "_");
     cb(null, Date.now() + '_' + cleanName);
   }
 });
 const upload = multer({ storage });
-
 
 router.post('/upload', authenticate, upload.single('file'), async (req, res) => {
   try {
@@ -42,7 +41,6 @@ router.post('/upload', authenticate, upload.single('file'), async (req, res) => 
   }
 });
 
-
 router.get('/list', authenticate, async (req, res) => {
   try {
     const items = await new Promise((resolve, reject) => {
@@ -50,13 +48,12 @@ router.get('/list', authenticate, async (req, res) => {
         (err, rows) => err ? reject(err) : resolve(rows));
     });
 
-    
     const mapped = items.map(i => ({
       id: i.id,
       title: i.originalname,
       description: '',
       type: i.type,
-      url: `http://localhost:4000/uploads/${i.filename}`
+      url: `${BASE_URL}/uploads/${i.filename}` 
     }));
 
     res.json(mapped);
@@ -65,7 +62,6 @@ router.get('/list', authenticate, async (req, res) => {
     res.status(500).json([]);
   }
 });
-
 
 router.get('/download/:id', authenticate, async (req, res) => {
   try {
