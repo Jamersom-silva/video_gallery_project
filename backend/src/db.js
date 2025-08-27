@@ -1,25 +1,28 @@
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 
-const dbPath = path.join(__dirname, '../../gallery.db');
-const db = new sqlite3.Database(dbPath);
+// Caminho atualizado para o banco de dados dentro da pasta backend/data
+const dbPath = path.join(__dirname, '../data/gallery.db');
 
-db.serialize(() => {
-  db.run(`CREATE TABLE IF NOT EXISTS users (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    username TEXT UNIQUE,
-    password TEXT
-  )`);
-
-  db.run(`CREATE TABLE IF NOT EXISTS media (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    user_id INTEGER,
-    originalname TEXT,
-    filename TEXT,
-    type TEXT,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY(user_id) REFERENCES users(id)
-  )`);
+const db = new sqlite3.Database(dbPath, (err) => {
+  if (err) {
+    console.error('Erro ao conectar ao banco:', err.message);
+  } else {
+    console.log('Conectado ao SQLite em', dbPath);
+  }
 });
 
-module.exports = db;
+// Exporta métodos básicos com promises
+module.exports = {
+  run: (sql, params=[]) => new Promise((resolve, reject) => {
+    db.run(sql, params, function(err){
+      if(err) reject(err); else resolve(this);
+    });
+  }),
+  get: (sql, params=[]) => new Promise((resolve, reject) => {
+    db.get(sql, params, (err,row)=>{ if(err) reject(err); else resolve(row); });
+  }),
+  all: (sql, params=[]) => new Promise((resolve, reject) => {
+    db.all(sql, params, (err, rows)=>{ if(err) reject(err); else resolve(rows); });
+  })
+};
