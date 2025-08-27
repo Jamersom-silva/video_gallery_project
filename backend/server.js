@@ -1,3 +1,4 @@
+
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
@@ -5,20 +6,24 @@ const multer = require('multer');
 const sqlite3 = require('sqlite3').verbose();
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const fs = require('fs');
 
 const app = express();
 const PORT = process.env.PORT || 4000;
 const BASE_URL = process.env.BASE_URL || `http://localhost:${PORT}`;
 const JWT_SECRET = process.env.JWT_SECRET || 'segredo123';
 
-// Conectar banco
-const dbPath = path.join(__dirname, 'data/gallery.db');
+// --- BANCO DE DADOS ---
+const dbPath = path.join('/opt/render/project', 'gallery.db'); // diretório persistente no Render
+const dbDir = path.dirname(dbPath);
+if (!fs.existsSync(dbDir)) fs.mkdirSync(dbDir, { recursive: true });
+
 const db = new sqlite3.Database(dbPath, err => {
   if (err) console.error('Erro ao conectar ao banco:', err);
   else console.log('Banco conectado com sucesso!');
 });
 
-// Criar tabelas se não existirem
+
 db.run(`CREATE TABLE IF NOT EXISTS users (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   username TEXT UNIQUE,
@@ -34,16 +39,18 @@ db.run(`CREATE TABLE IF NOT EXISTS media (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 )`);
 
-// Middleware
+
 app.use(cors());
 app.use(express.json());
 
-// Servir arquivos da pasta uploads
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// Configuração Multer
+const uploadsDir = path.join(process.cwd(), 'uploads');
+if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
+app.use('/uploads', express.static(uploadsDir));
+
+
 const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, path.join(__dirname, 'uploads')),
+  destination: (req, file, cb) => cb(null, uploadsDir),
   filename: (req, file, cb) => {
     const sanitized = file.originalname
       .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
@@ -55,7 +62,7 @@ const upload = multer({ storage });
 
 // --- ROTAS ---
 
-// Registro
+
 app.post('/auth/register', async (req, res) => {
   const { username, password } = req.body;
   if (!username || !password) return res.status(400).json({ message: 'Campos faltando' });
@@ -67,7 +74,7 @@ app.post('/auth/register', async (req, res) => {
   });
 });
 
-// Login
+
 app.post('/auth/login', (req, res) => {
   const { username, password } = req.body;
   db.get(`SELECT * FROM users WHERE username = ?`, [username], async (err, user) => {
@@ -79,7 +86,7 @@ app.post('/auth/login', (req, res) => {
   });
 });
 
-// Middleware de autenticação
+
 function authMiddleware(req, res, next){
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1];
@@ -91,7 +98,7 @@ function authMiddleware(req, res, next){
   });
 }
 
-// Upload mídia
+
 app.post('/media/upload', authMiddleware, upload.single('file'), (req, res) => {
   const file = req.file;
   if(!file) return res.status(400).json({ message: 'Arquivo não enviado' });
@@ -107,7 +114,7 @@ app.post('/media/upload', authMiddleware, upload.single('file'), (req, res) => {
   );
 });
 
-// Listar mídias do usuário
+
 app.get('/media/list', authMiddleware, (req, res) => {
   db.all(`SELECT * FROM media WHERE user_id = ? ORDER BY created_at DESC`, [req.user.id], (err, rows) => {
     if(err) return res.status(500).json({ message: 'Erro ao listar mídias' });
@@ -122,14 +129,15 @@ app.get('/media/list', authMiddleware, (req, res) => {
   });
 });
 
-// Download de arquivo
+
 app.get('/media/download/:id', authMiddleware, (req, res) => {
-  const id = req.params.id;
-  db.get(`SELECT * FROM media WHERE id=? AND user_id=?`, [id, req.user.id], (err, file) => {
-    if(err || !file) return res.status(404).json({ message: 'Arquivo não encontrado' });
-    const filePath = path.join(__dirname, 'uploads', file.filename);
-    res.download(filePath, file.originalname);
+  const { id } = req.params;
+  db.get(`SELECT * FROM media WHERE id = ? AND user_id = ?`, [id, req.user.id], (err, row) => {
+    if(err || !row) return res.status(404).json({ message: 'Mídia não encontrada' });
+    const filePath = path.join(uploadsDir, row.filename);
+    res.download(filePath, row.originalname);
   });
 });
+
 
 app.listen(PORT, () => console.log(`Servidor rodando na porta ${PORT}`));
