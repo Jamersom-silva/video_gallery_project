@@ -1,4 +1,5 @@
-const API = 'https://SEU_BACKEND_NO_RENDER.onrender.com'; // Substitua pela URL do Render
+// Substitua pela URL do seu backend no Render
+const API = 'https://video-gallery-project-1.onrender.com';
 const token = localStorage.getItem('token');
 const username = localStorage.getItem('username');
 

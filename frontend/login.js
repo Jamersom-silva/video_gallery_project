@@ -1,3 +1,6 @@
+
+const API = 'https://video-gallery-project-1.onrender.com';
+
 const loginForm = document.getElementById('loginForm');
 const msg = document.getElementById('msg');
 
@@ -8,7 +11,7 @@ loginForm.addEventListener('submit', async e => {
   const password = document.getElementById('password').value.trim();
 
   try {
-    const res = await fetch('http://localhost:4000/auth/login', {
+    const res = await fetch(`${API}/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ username, password })
