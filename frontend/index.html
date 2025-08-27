@@ -9,7 +9,7 @@
 <body class="bg-slate-900 text-slate-100 min-h-screen p-6">
   <div class="max-w-5xl mx-auto">
 
-    <!-- Header com Logout -->
+    <!-- Header -->
     <div class="flex justify-between items-center mb-6">
       <h1 class="text-3xl font-bold">Galeria de Mídia</h1>
       <div>
@@ -18,28 +18,19 @@
       </div>
     </div>
 
-    <p class="text-slate-400 mb-6">Faça upload de fotos e vídeos e organize sua própria galeria.</p>
-
-    <!-- Upload area -->
+    <!-- Upload -->
     <section class="bg-slate-800 p-4 rounded-lg mb-6">
       <form id="uploadForm" class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
         <div class="md:col-span-2">
           <label class="block text-sm text-slate-300">Título</label>
           <input id="title" class="mt-1 w-full rounded p-2 bg-slate-700 border border-slate-600" placeholder="Ex: Minha viagem" />
-          <label class="block text-sm text-slate-300 mt-3">Descrição</label>
-          <input id="description" class="mt-1 w-full rounded p-2 bg-slate-700 border border-slate-600" placeholder="Descrição curta" />
         </div>
-
         <div class="flex flex-col gap-3">
           <label class="block text-sm text-slate-300">Escolher arquivo</label>
           <input id="fileInput" type="file" accept="video/*,image/*" class="text-slate-200" />
           <button id="uploadBtn" class="bg-emerald-500 text-black px-4 py-2 rounded font-semibold">Adicionar</button>
         </div>
       </form>
-
-      <div id="dropArea" class="mt-4 p-4 border-2 border-dashed border-slate-600 rounded text-center text-slate-400">
-        Arraste e solte arquivos aqui ou use o botão acima.
-      </div>
     </section>
 
     <!-- Gallery -->
@@ -65,7 +56,6 @@
           <button id="closeModal" class="bg-slate-700 px-3 py-1 rounded">Fechar</button>
         </div>
       </div>
-
       <div class="mt-4">
         <img id="modalImage" class="w-full rounded hidden" />
         <video id="modalVideo" controls class="w-full rounded bg-black hidden"></video>
@@ -103,7 +93,6 @@ document.getElementById('btn-logout').onclick = () => {
 const uploadForm = document.getElementById('uploadForm');
 const fileInput = document.getElementById('fileInput');
 const titleInput = document.getElementById('title');
-const descInput = document.getElementById('description');
 const gallery = document.getElementById('gallery');
 const countSpan = document.getElementById('count');
 const emptyMsg = document.getElementById('emptyMsg');
@@ -122,9 +111,8 @@ uploadForm.addEventListener('submit', async e => {
   const formData = new FormData();
   formData.append('file', file);
   formData.append('title', titleInput.value);
-  formData.append('description', descInput.value);
 
-  const res = await fetch('http://localhost:3000/media/upload', {
+  const res = await fetch('http://localhost:4000/media/upload', {
     method: 'POST',
     headers: {'Authorization': `Bearer ${token}`},
     body: formData
@@ -133,7 +121,7 @@ uploadForm.addEventListener('submit', async e => {
   const data = await res.json();
   if(data.success){
     await renderGallery();
-    titleInput.value=''; descInput.value=''; fileInput.value='';
+    titleInput.value=''; fileInput.value='';
   } else {
     alert(data.message || 'Erro no upload');
   }
@@ -149,7 +137,7 @@ closeModal.addEventListener('click', () => {
 
 // Render gallery
 async function renderGallery(){
-  const res = await fetch('http://localhost:3000/media/list', {
+  const res = await fetch('http://localhost:4000/media/list', {
     headers: {'Authorization': `Bearer ${token}`}
   });
   const items = await res.json();
@@ -167,18 +155,29 @@ async function renderGallery(){
     const p = el.querySelector('p');
 
     h4.textContent = item.title;
-    p.textContent = item.description;
+    p.textContent = '';
 
-    const blobURL = item.url; // Supondo que o backend retorne URL pública
     if(item.type==='image'){
-      img.src = blobURL;
+      img.src = item.url;
       img.classList.remove('hidden');
     } else {
-      video.src = blobURL;
+      video.src = item.url;
       video.classList.remove('hidden');
     }
 
+    // Download button
+    const downloadBtn = document.createElement('button');
+    downloadBtn.textContent = 'Baixar';
+    downloadBtn.className = 'mt-2 bg-blue-500 px-3 py-1 rounded text-sm';
+    downloadBtn.onclick = (e) => {
+      e.stopPropagation();
+      window.open(`http://localhost:4000/media/download/${item.id}?token=${token}`, '_blank');
+    };
+
+    el.querySelector('.p-3').appendChild(downloadBtn);
+
     el.querySelector('div.bg-slate-800').onclick = () => openModal(item);
+
     gallery.appendChild(el);
   });
 }
@@ -186,7 +185,7 @@ async function renderGallery(){
 function openModal(item){
   modal.classList.remove('hidden');
   modalTitle.textContent = item.title;
-  modalDesc.textContent = item.description;
+  modalDesc.textContent = '';
   if(item.type==='image'){
     modalImage.src = item.url;
     modalImage.classList.remove('hidden');

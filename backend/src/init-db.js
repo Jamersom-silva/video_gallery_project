@@ -1,4 +1,4 @@
-const db = require('./db'); // CORRIGIDO
+const db = require('./middlewares/db'); // CORRIGIDO
 const fs = require('fs');
 const path = require('path');
 

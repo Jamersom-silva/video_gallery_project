@@ -1,26 +1,115 @@
 <!doctype html>
 <html lang="pt-BR">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Login / Registro — Galeria</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Login / Registro - Galeria de Mídia</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-slate-900 text-slate-100 min-h-screen flex items-center justify-center">
-  <div class="bg-slate-800 p-6 rounded shadow-md w-full max-w-sm">
-    <h1 class="text-2xl font-bold mb-4 text-center">Login / Registro</h1>
+  <div class="bg-slate-800 p-8 rounded-lg w-full max-w-sm">
+    <h1 id="formTitle" class="text-2xl font-bold mb-6 text-center">Login</h1>
 
-    <h2 class="font-semibold mb-1">Registrar</h2>
-    <input id="reg-username" placeholder="Usuário" class="p-2 rounded text-black w-full mb-2"/>
-    <input id="reg-password" placeholder="Senha" type="password" class="p-2 rounded text-black w-full mb-2"/>
-    <button id="btn-register" class="bg-green-500 hover:bg-green-600 p-2 rounded w-full mb-4">Registrar</button>
+    <!-- Formulário de Login -->
+    <form id="loginForm" class="flex flex-col gap-4">
+      <input id="loginUsername" type="text" placeholder="Usuário" class="p-2 rounded bg-slate-700 border border-slate-600" required>
+      <input id="loginPassword" type="password" placeholder="Senha" class="p-2 rounded bg-slate-700 border border-slate-600" required>
+      <button type="submit" class="bg-emerald-500 text-black py-2 rounded font-semibold">Entrar</button>
+    </form>
 
-    <h2 class="font-semibold mb-1">Login</h2>
-    <input id="login-username" placeholder="Usuário" class="p-2 rounded text-black w-full mb-2"/>
-    <input id="login-password" placeholder="Senha" type="password" class="p-2 rounded text-black w-full mb-2"/>
-    <button id="btn-login" class="bg-blue-500 hover:bg-blue-600 p-2 rounded w-full">Login</button>
+    <!-- Formulário de Registro (inicialmente escondido) -->
+    <form id="registerForm" class="flex flex-col gap-4 hidden">
+      <input id="regUsername" type="text" placeholder="Usuário" class="p-2 rounded bg-slate-700 border border-slate-600" required>
+      <input id="regPassword" type="password" placeholder="Senha" class="p-2 rounded bg-slate-700 border border-slate-600" required>
+      <input id="regPasswordConfirm" type="password" placeholder="Confirmar senha" class="p-2 rounded bg-slate-700 border border-slate-600" required>
+      <button type="submit" class="bg-blue-500 text-black py-2 rounded font-semibold">Registrar</button>
+    </form>
+
+    <p class="text-slate-400 mt-4 text-center">
+      <span id="loginText">Não tem conta?</span> 
+      <a href="#" id="toggleForm" class="text-emerald-400">Registrar</a>
+    </p>
   </div>
 
-  <script src="login.js"></script>
+  <script>
+    const loginForm = document.getElementById('loginForm');
+    const registerForm = document.getElementById('registerForm');
+    const toggleLink = document.getElementById('toggleForm');
+    const formTitle = document.getElementById('formTitle');
+    const loginText = document.getElementById('loginText');
+
+    // Alterna entre login e registro
+    toggleLink.onclick = e => {
+      e.preventDefault();
+      loginForm.classList.toggle('hidden');
+      registerForm.classList.toggle('hidden');
+      if(registerForm.classList.contains('hidden')){
+        formTitle.textContent = 'Login';
+        loginText.textContent = 'Não tem conta?';
+        toggleLink.textContent = 'Registrar';
+      } else {
+        formTitle.textContent = 'Registro';
+        loginText.textContent = 'Já tem conta?';
+        toggleLink.textContent = 'Entrar';
+      }
+    }
+
+    // Função de login
+    loginForm.addEventListener('submit', async e => {
+      e.preventDefault();
+      const username = document.getElementById('loginUsername').value;
+      const password = document.getElementById('loginPassword').value;
+
+      try {
+        const res = await fetch('http://localhost:4000/auth/login', {
+          method: 'POST',
+          headers: {'Content-Type':'application/json'},
+          body: JSON.stringify({ username, password })
+        });
+        const data = await res.json();
+        if(data.token){
+          localStorage.setItem('token', data.token);
+          localStorage.setItem('username', username);
+          window.location.href = 'index.html';
+        } else {
+          alert(data.message || 'Erro no login');
+        }
+      } catch(err){
+        console.error(err);
+        alert('Erro ao conectar ao servidor');
+      }
+    });
+
+    // Função de registro
+    registerForm.addEventListener('submit', async e => {
+      e.preventDefault();
+      const username = document.getElementById('regUsername').value;
+      const password = document.getElementById('regPassword').value;
+      const passwordConfirm = document.getElementById('regPasswordConfirm').value;
+
+      if(password !== passwordConfirm){
+        alert('As senhas não conferem');
+        return;
+      }
+
+      try {
+        const res = await fetch('http://localhost:4000/auth/register', {
+          method: 'POST',
+          headers: {'Content-Type':'application/json'},
+          body: JSON.stringify({ username, password })
+        });
+        const data = await res.json();
+        if(data.success){
+          alert('Registro realizado! Agora faça login.');
+          toggleLink.click(); // volta pro login
+        } else {
+          alert(data.message || 'Erro no registro');
+        }
+      } catch(err){
+        console.error(err);
+        alert('Erro ao conectar ao servidor');
+      }
+    });
+  </script>
 </body>
 </html>

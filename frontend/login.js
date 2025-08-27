@@ -1,37 +1,29 @@
-const API = 'http://localhost:4000'; // backend
+const loginForm = document.getElementById('loginForm');
+const msg = document.getElementById('msg');
 
-// Registrar
-document.getElementById('btn-register').onclick = async () => {
-  const username = document.getElementById('reg-username').value;
-  const password = document.getElementById('reg-password').value;
-  if(!username || !password){ alert("Preencha usuário e senha"); return; }
+loginForm.addEventListener('submit', async e => {
+  e.preventDefault();
 
-  const res = await fetch(API + '/auth/register', {
-    method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({username,password})
-  });
-  const data = await res.json();
-  alert(data.message || 'Erro');
-  if(data.token){
+  const username = document.getElementById('username').value.trim();
+  const password = document.getElementById('password').value.trim();
+
+  try {
+    const res = await fetch('http://localhost:4000/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password })
+    });
+
+    const data = await res.json();
+    if (!data.success) {
+      msg.textContent = data.message;
+      return;
+    }
+
     localStorage.setItem('token', data.token);
-    localStorage.setItem('username', username);
+    localStorage.setItem('username', data.username);
     window.location.href = 'index.html';
+  } catch (err) {
+    msg.textContent = 'Erro ao conectar ao servidor';
   }
-};
-
-// Login
-document.getElementById('btn-login').onclick = async () => {
-  const username = document.getElementById('login-username').value;
-  const password = document.getElementById('login-password').value;
-  if(!username || !password){ alert("Preencha usuário e senha"); return; }
-
-  const res = await fetch(API + '/auth/login', {
-    method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({username,password})
-  });
-  const data = await res.json();
-  alert(data.message || 'Erro');
-  if(data.token){
-    localStorage.setItem('token', data.token);
-    localStorage.setItem('username', username);
-    window.location.href = 'index.html';
-  }
-};
+});
