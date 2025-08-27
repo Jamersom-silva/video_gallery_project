@@ -11,9 +11,9 @@ const app = express();
 const PORT = process.env.PORT || 4000;
 const JWT_SECRET = process.env.JWT_SECRET || 'segredo123';
 
-const dbPath = path.join('/opt/render/project', 'gallery.db'); 
-const dbDir = path.dirname(dbPath);
-if (!fs.existsSync(dbDir)) fs.mkdirSync(dbDir, { recursive: true });
+// --- Banco de dados ---
+const dbPath = path.join(__dirname, 'gallery.db'); 
+if (!fs.existsSync(path.dirname(dbPath))) fs.mkdirSync(path.dirname(dbPath), { recursive: true });
 
 const db = new sqlite3.Database(dbPath, err => {
   if (err) console.error('Erro ao conectar ao banco:', err);
@@ -35,10 +35,12 @@ db.run(`CREATE TABLE IF NOT EXISTS media (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 )`);
 
+// --- Middlewares ---
 app.use(cors());
 app.use(express.json());
 
-const uploadsDir = path.join('/opt/render/project', 'uploads'); 
+// --- Uploads ---
+const uploadsDir = path.join(__dirname, 'uploads'); 
 if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
 app.use('/uploads', express.static(uploadsDir));
 
@@ -53,8 +55,7 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage });
 
-// --- ROTAS ---
-
+// --- Rotas de autenticação ---
 app.post('/auth/register', async (req, res) => {
   const { username, password } = req.body;
   if (!username || !password) return res.status(400).json({ message: 'Campos faltando' });
@@ -77,6 +78,7 @@ app.post('/auth/login', (req, res) => {
   });
 });
 
+// --- Middleware de autenticação ---
 function authMiddleware(req, res, next){
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1];
@@ -88,6 +90,7 @@ function authMiddleware(req, res, next){
   });
 }
 
+// --- Rotas de mídia ---
 app.post('/media/upload', authMiddleware, upload.single('file'), (req, res) => {
   const file = req.file;
   if(!file) return res.status(400).json({ message: 'Arquivo não enviado' });
@@ -106,13 +109,15 @@ app.post('/media/upload', authMiddleware, upload.single('file'), (req, res) => {
 app.get('/media/list', authMiddleware, (req, res) => {
   db.all(`SELECT * FROM media WHERE user_id = ? ORDER BY created_at DESC`, [req.user.id], (err, rows) => {
     if(err) return res.status(500).json({ message: 'Erro ao listar mídias' });
+
     const items = rows.map(r => ({
       id: r.id,
       title: r.originalname,
       filename: r.filename,
       type: r.type,
-      url: `${req.protocol}://${req.get('host')}/uploads/${r.filename}`  // <<< 🔥 URL dinâmica
+      url: `https://video-gallery-project-1.onrender.com/uploads/${r.filename}`
     }));
+
     res.json(items);
   });
 });
@@ -126,4 +131,22 @@ app.get('/media/download/:id', authMiddleware, (req, res) => {
   });
 });
 
+// --- Nova rota para apagar mídia ---
+app.delete('/media/:id', authMiddleware, (req, res) => {
+  const { id } = req.params;
+  db.get(`SELECT * FROM media WHERE id = ? AND user_id = ?`, [id, req.user.id], (err, row) => {
+    if(err || !row) return res.status(404).json({ message: 'Mídia não encontrada' });
+
+    const filePath = path.join(uploadsDir, row.filename);
+    fs.unlink(filePath, unlinkErr => {
+      if(unlinkErr) console.error('Erro ao apagar arquivo:', unlinkErr);
+      db.run(`DELETE FROM media WHERE id = ?`, [id], deleteErr => {
+        if(deleteErr) return res.status(500).json({ message: 'Erro ao apagar do banco' });
+        res.json({ success: true });
+      });
+    });
+  });
+});
+
+// --- Servidor ---
 app.listen(PORT, () => console.log(`Servidor rodando na porta ${PORT}`));

@@ -70,15 +70,21 @@
         <img class="w-full h-full object-cover hidden" />
         <video class="w-full h-full object-cover hidden" muted playsinline preload="metadata"></video>
       </div>
-      <div class="p-3">
-        <h4 class="font-semibold text-lg truncate"></h4>
-        <p class="text-sm text-slate-400 truncate mt-1"></p>
+      <div class="p-3 flex justify-between items-center">
+        <div>
+          <h4 class="font-semibold text-lg truncate"></h4>
+          <p class="text-sm text-slate-400 truncate mt-1"></p>
+        </div>
+        <div class="flex flex-col gap-1">
+          <button class="downloadBtn bg-blue-500 px-3 py-1 rounded text-sm">Baixar</button>
+          <button class="deleteBtn bg-red-500 px-3 py-1 rounded text-sm">Apagar</button>
+        </div>
       </div>
     </div>
   </template>
 
 <script>
-const API = 'https://video-gallery-project-1.onrender.com'; // URL do backend Render
+const API = 'https://video-gallery-project-1.onrender.com';
 const token = localStorage.getItem('token');
 const username = localStorage.getItem('username');
 
@@ -101,7 +107,6 @@ const modal = document.getElementById('modal');
 const modalVideo = document.getElementById('modalVideo');
 const modalImage = document.getElementById('modalImage');
 const modalTitle = document.getElementById('modalTitle');
-const modalDesc = document.getElementById('modalDesc');
 const closeModal = document.getElementById('closeModal');
 
 uploadForm.addEventListener('submit', async e => {
@@ -123,9 +128,7 @@ uploadForm.addEventListener('submit', async e => {
     if(data.success){
       titleInput.value=''; fileInput.value='';
       await renderGallery();
-    } else {
-      alert(data.message || 'Erro no upload');
-    }
+    } else alert(data.message || 'Erro no upload');
   } catch(err){
     alert('Erro ao conectar ao servidor');
     console.error(err);
@@ -153,10 +156,8 @@ async function renderGallery(){
       const img = el.querySelector('img');
       const video = el.querySelector('video');
       const h4 = el.querySelector('h4');
-      const p = el.querySelector('p');
 
       h4.textContent = item.title;
-      p.textContent = '';
 
       if(item.type==='image'){
         img.src = item.url;
@@ -166,19 +167,36 @@ async function renderGallery(){
         video.classList.remove('hidden');
       }
 
-      const downloadBtn = document.createElement('button');
-      downloadBtn.textContent = 'Baixar';
-      downloadBtn.className = 'mt-2 bg-blue-500 px-3 py-1 rounded text-sm';
-      downloadBtn.onclick = (e) => {
+      // Download
+      el.querySelector('.downloadBtn').onclick = e => {
         e.stopPropagation();
         window.open(`${API}/media/download/${item.id}?token=${token}`, '_blank');
       };
-      el.querySelector('.p-3').appendChild(downloadBtn);
+
+      // Delete
+      el.querySelector('.deleteBtn').onclick = async e => {
+        e.stopPropagation();
+        if(confirm('Deseja apagar esta mídia?')){
+          try {
+            const res = await fetch(`${API}/media/${item.id}`, {
+              method: 'DELETE',
+              headers: {'Authorization': `Bearer ${token}`}
+            });
+            const data = await res.json();
+            if(data.success) renderGallery();
+            else alert(data.message || 'Erro ao apagar');
+          } catch(err){
+            alert('Erro ao conectar ao servidor');
+            console.error(err);
+          }
+        }
+      };
 
       el.querySelector('div.bg-slate-800').onclick = () => openModal(item);
 
       gallery.appendChild(el);
     });
+
   } catch(err){
     alert('Erro ao carregar galeria');
     console.error(err);
@@ -188,7 +206,6 @@ async function renderGallery(){
 function openModal(item){
   modal.classList.remove('hidden');
   modalTitle.textContent = item.title;
-  modalDesc.textContent = '';
   if(item.type==='image'){
     modalImage.src = item.url;
     modalImage.classList.remove('hidden');
