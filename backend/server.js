@@ -9,13 +9,9 @@ const fs = require('fs');
 
 const app = express();
 const PORT = process.env.PORT || 4000;
-
-// 👉 Se tiver BASE_URL no Render, usa ele.
-// 👉 Se não tiver, usa o localhost automaticamente.
-const BASE_URL = process.env.BASE_URL || `http://localhost:${PORT}`;
 const JWT_SECRET = process.env.JWT_SECRET || 'segredo123';
 
-const dbPath = path.join('/opt/render/project', 'gallery.db');
+const dbPath = path.join('/opt/render/project', 'gallery.db'); 
 const dbDir = path.dirname(dbPath);
 if (!fs.existsSync(dbDir)) fs.mkdirSync(dbDir, { recursive: true });
 
@@ -42,8 +38,7 @@ db.run(`CREATE TABLE IF NOT EXISTS media (
 app.use(cors());
 app.use(express.json());
 
-// --- Uploads ---
-const uploadsDir = path.join('/opt/render/project', 'uploads');
+const uploadsDir = path.join('/opt/render/project', 'uploads'); 
 if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
 app.use('/uploads', express.static(uploadsDir));
 
@@ -116,7 +111,7 @@ app.get('/media/list', authMiddleware, (req, res) => {
       title: r.originalname,
       filename: r.filename,
       type: r.type,
-      url: `${BASE_URL}/uploads/${r.filename}`
+      url: `${req.protocol}://${req.get('host')}/uploads/${r.filename}`  // <<< 🔥 URL dinâmica
     }));
     res.json(items);
   });
