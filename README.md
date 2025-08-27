@@ -1,21 +1,105 @@
-# Video Gallery Project (backend + simple frontend)
+# Video Gallery Project
 
-This package contains:
-- `backend/` — Node.js + Express + SQLite backend with JWT auth
-- `frontend/` — Minimal static frontend (index.html + app.js) to test the API locally
+Este projeto é uma **galeria de fotos e vídeos**, onde cada usuário pode se registrar, logar, enviar mídias e baixar seus arquivos. O backend é feito em **Node.js/Express** com **SQLite** e o frontend em **HTML/CSS/JS** com **TailwindCSS**. O projeto está pronto para deploy na **Vercel (frontend)** e **Render (backend)**.
 
-## Quick start (locally)
-1. Open two terminals.
-2. Terminal 1 — start backend:
-   ```
+---
+
+## 🔹 Funcionalidades
+
+* Registro e login de usuários com JWT.
+* Upload de imagens e vídeos.
+* Visualização da galeria pessoal.
+* Download de mídias.
+* Modal para exibição de imagens e vídeos.
+
+---
+
+## 🛠️ Tecnologias
+
+* Node.js / Express
+* SQLite
+* JWT para autenticação
+* Bcrypt para senhas
+* Multer para upload de arquivos
+* TailwindCSS para frontend
+
+---
+
+## 💻 Rodando localmente
+
+### 1. Backend
+
+1. Entre na pasta do backend:
+
+   ```bash
    cd backend
-   npm install
-   npm start
    ```
-   Backend runs on port 4000 by default.
-3. Terminal 2 — open `frontend/index.html` in your browser (File -> Open) or serve it with a simple static server.
-4. Register a user, login, upload files and test.
+2. Instale dependências:
 
-## Notes for Vercel / Deployment
-- Vercel is intended for frontends. For backend you can deploy to Render, Railway, Fly, or use Vercel Serverless Functions (requires adaptation).
-- Uploaded files are stored on disk (`uploads/`) — when deploying to serverless platforms, persistent disk storage is not guaranteed. For production use, prefer cloud storage (S3, Google Cloud Storage).
+   ```bash
+   npm install
+   ```
+3. Crie pastas necessárias:
+
+   ```bash
+   mkdir uploads data
+   ```
+4. Rode o servidor:
+
+   ```bash
+   node server.js
+   ```
+
+   O backend rodará em `http://localhost:4000`.
+
+### 2. Frontend
+
+1. Abra o `index.html` no navegador.
+2. Configure a URL do backend no `app.js`:
+
+   ```js
+   const API = 'http://localhost:4000';
+   ```
+3. Agora você pode registrar, logar, enviar e visualizar mídias.
+
+---
+
+## ☁️ Deploy
+
+### Backend (Render)
+
+1. Crie uma conta em [Render](https://render.com).
+2. Crie um novo **Web Service** e conecte seu repositório Git.
+3. Configure as variáveis de ambiente:
+
+   * `PORT` (Render já define automaticamente)
+   * `JWT_SECRET`
+   * `BASE_URL` (URL pública do Render, ex: `https://meu-backend.onrender.com`)
+4. Render instalará dependências e rodará automaticamente.
+
+### Frontend (Vercel)
+
+1. Crie uma conta em [Vercel](https://vercel.com).
+2. Configure um novo projeto apontando para a pasta do frontend.
+3. No `app.js`, atualize a URL do backend:
+
+   ```js
+   const API = 'https://SEU_BACKEND_NO_RENDER.onrender.com';
+   ```
+4. Deploy automático após push no GitHub.
+
+---
+
+
+
+---
+
+## ⚡ Observações
+
+* Cada usuário só pode ver suas próprias mídias.
+* Uploads suportam imagens e vídeos.
+* Download protegido por token JWT.
+* Fácil de testar e demonstrar para recrutadores.
+
+---
+

@@ -7,8 +7,9 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 
 const app = express();
-const PORT = 4000;
-const JWT_SECRET = 'segredo123';
+const PORT = process.env.PORT || 4000;
+const BASE_URL = process.env.BASE_URL || `http://localhost:${PORT}`;
+const JWT_SECRET = process.env.JWT_SECRET || 'segredo123';
 
 // Conectar banco
 const dbPath = path.join(__dirname, 'data/gallery.db');
@@ -92,7 +93,6 @@ function authMiddleware(req, res, next){
 
 // Upload mídia
 app.post('/media/upload', authMiddleware, upload.single('file'), (req, res) => {
-  const { title, description } = req.body;
   const file = req.file;
   if(!file) return res.status(400).json({ message: 'Arquivo não enviado' });
 
@@ -116,9 +116,19 @@ app.get('/media/list', authMiddleware, (req, res) => {
       title: r.originalname,
       filename: r.filename,
       type: r.type,
-      url: `http://localhost:${PORT}/uploads/${r.filename}`
+      url: `${BASE_URL}/uploads/${r.filename}`
     }));
     res.json(items);
+  });
+});
+
+// Download de arquivo
+app.get('/media/download/:id', authMiddleware, (req, res) => {
+  const id = req.params.id;
+  db.get(`SELECT * FROM media WHERE id=? AND user_id=?`, [id, req.user.id], (err, file) => {
+    if(err || !file) return res.status(404).json({ message: 'Arquivo não encontrado' });
+    const filePath = path.join(__dirname, 'uploads', file.filename);
+    res.download(filePath, file.originalname);
   });
 });
 
