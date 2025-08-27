@@ -11,7 +11,7 @@ const app = express();
 const PORT = process.env.PORT || 4000;
 const JWT_SECRET = process.env.JWT_SECRET || 'segredo123';
 
-// --- Banco de dados ---
+
 const dbPath = path.join(__dirname, 'gallery.db'); 
 if (!fs.existsSync(path.dirname(dbPath))) fs.mkdirSync(path.dirname(dbPath), { recursive: true });
 
@@ -20,12 +20,12 @@ const db = new sqlite3.Database(dbPath, err => {
   else console.log('Banco conectado com sucesso!');
 });
 
+
 db.run(`CREATE TABLE IF NOT EXISTS users (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   username TEXT UNIQUE,
   password TEXT
 )`);
-
 db.run(`CREATE TABLE IF NOT EXISTS media (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   user_id INTEGER,
@@ -35,14 +35,15 @@ db.run(`CREATE TABLE IF NOT EXISTS media (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 )`);
 
-// --- Middlewares ---
+
 app.use(cors());
 app.use(express.json());
 
-// --- Uploads ---
+
 const uploadsDir = path.join(__dirname, 'uploads'); 
 if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
 app.use('/uploads', express.static(uploadsDir));
+
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, uploadsDir),
@@ -55,7 +56,7 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage });
 
-// --- Rotas de autenticação ---
+
 app.post('/auth/register', async (req, res) => {
   const { username, password } = req.body;
   if (!username || !password) return res.status(400).json({ message: 'Campos faltando' });
@@ -78,7 +79,7 @@ app.post('/auth/login', (req, res) => {
   });
 });
 
-// --- Middleware de autenticação ---
+
 function authMiddleware(req, res, next){
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1];
@@ -90,7 +91,8 @@ function authMiddleware(req, res, next){
   });
 }
 
-// --- Rotas de mídia ---
+
+
 app.post('/media/upload', authMiddleware, upload.single('file'), (req, res) => {
   const file = req.file;
   if(!file) return res.status(400).json({ message: 'Arquivo não enviado' });
@@ -105,6 +107,7 @@ app.post('/media/upload', authMiddleware, upload.single('file'), (req, res) => {
     }
   );
 });
+
 
 app.get('/media/list', authMiddleware, (req, res) => {
   db.all(`SELECT * FROM media WHERE user_id = ? ORDER BY created_at DESC`, [req.user.id], (err, rows) => {
@@ -122,6 +125,7 @@ app.get('/media/list', authMiddleware, (req, res) => {
   });
 });
 
+
 app.get('/media/download/:id', authMiddleware, (req, res) => {
   const { id } = req.params;
   db.get(`SELECT * FROM media WHERE id = ? AND user_id = ?`, [id, req.user.id], (err, row) => {
@@ -131,7 +135,7 @@ app.get('/media/download/:id', authMiddleware, (req, res) => {
   });
 });
 
-// --- Nova rota para apagar mídia ---
+
 app.delete('/media/:id', authMiddleware, (req, res) => {
   const { id } = req.params;
   db.get(`SELECT * FROM media WHERE id = ? AND user_id = ?`, [id, req.user.id], (err, row) => {
@@ -148,5 +152,5 @@ app.delete('/media/:id', authMiddleware, (req, res) => {
   });
 });
 
-// --- Servidor ---
+
 app.listen(PORT, () => console.log(`Servidor rodando na porta ${PORT}`));
