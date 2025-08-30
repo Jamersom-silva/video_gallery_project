@@ -100,6 +100,6 @@ Este projeto é uma **galeria de fotos e vídeos**, onde cada usuário pode se r
 * Uploads suportam imagens e vídeos.
 * Download protegido por token JWT.
 * Fácil de testar e demonstrar para recrutadores.
-
+*deploy: https://video-gallery-project.vercel.app/login.html
 ---
 
